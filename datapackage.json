@@ -5,35 +5,35 @@
   "version": "0.1.0",
   "contributors": [
     {
-      "name": "Ethan Welty",
+      "title": "Ethan Welty",
       "email": "ethan.welty@gmail.com",
-      "roles": "Assembled and published the datapackage."
+      "role": "author"
     },
     {
-      "name": "David Finnegan",
-      "roles": "Coordinated the installation and maintenance of the station."
+      "title": "David Finnegan",
+      "role": "Coordinated the installation and maintenance of the station."
     },
     {
-      "name": "Adam LeWinter",
-      "roles": "Assisted station deployment."
+      "title": "Adam LeWinter",
+      "role": "Assisted station deployment."
     },
     {
-      "name": "Pete Gadomski",
-      "roles": "Wrote the API distributing the data from the station."
+      "title": "Pete Gadomski",
+      "role": "Wrote the API distributing the data from the station."
     }
   ],
   "sources": [
     {
-      "name": "Glacier Research: Columbia Glacier",
-      "web": "http://glacierresearch.org/locations/columbia/"
+      "title": "Glacier Research: Columbia Glacier",
+      "path": "http://glacierresearch.org/locations/columbia/"
     },
     {
-      "name": "Pete Gadomski's CWMS JSON API (cwms-jsonapi)",
-      "web": "https://github.com/gadomski/cwms-jsonapi"
+      "title": "Pete Gadomski's CWMS JSON API (cwms-jsonapi)",
+      "path": "https://github.com/gadomski/cwms-jsonapi"
     },
     {
-      "name": "CWMS JSON API Endpoints",
-      "web": "https://reservoircontrol.usace.army.mil/NE/pls/cwmsweb/cwms_web.jsonapi"
+      "title": "CWMS JSON API Endpoints",
+      "path": "https://reservoircontrol.usace.army.mil/NE/pls/cwmsweb/cwms_web.jsonapi"
     }
   ],
   "resources": [
@@ -61,17 +61,19 @@
           {
             "name": "location_type",
             "type": "string",
-            "description": "Type of the location."
+            "description": "Location type."
           },
           {
             "name": "latitude",
             "type": "number",
-            "description": "Latitude in decimal degrees (WGS84, EPSG:4326)."
+            "description": "Latitude (WGS84, EPSG:4326).",
+            "unit": "°"
           },
           {
             "name": "longitude",
             "type": "number",
-            "description": "Longitude in decimal degrees (WGS84, EPSG:4326)."
+            "description": "Longitude (WGS84, EPSG:4326).",
+            "unit": "°"
           },
           {
             "name": "elevation",
@@ -153,52 +155,61 @@
             "name": "date_time",
             "type": "datetime",
             "description": "Date and time (UTC).",
-            "format": "YYYY-MM-DD'T'hh:mm:ss'Z'"
+            "format": "%Y-%m-%dT%H:%M:%SZ"
           },
           {
             "name": "air_temperature_1",
             "type": "number",
-            "description": "Air temperature (°C) from sensor #1."
+            "description": "Air temperature from sensor #1.",
+            "unit": "°C"
           },
           {
             "name": "air_temperature_2",
             "type": "number",
-            "description": "Air temperature (°C) from sensor #2."
+            "description": "Air temperature from sensor #2.",
+            "unit": "°C"
           },
           {
             "name": "relative_humidity",
             "type": "number",
-            "description": "Relative humidity (%)."
+            "description": "Relative humidity.",
+            "unit": "%"
           },
           {
             "name": "wind_speed_1",
             "type": "number",
-            "description": "Wind speed (kph) from sensor #1."
+            "description": "Wind speed from sensor #1.",
+            "unit": "km h-1"
           },
           {
             "name": "wind_speed_2",
             "type": "number",
-            "description": "Wind speed (kph) from sensor #2."
+            "description": "Wind speed from sensor #2.",
+            "unit": "km h-1"
           },
           {
             "name": "wind_direction_1",
             "type": "number",
-            "description": "Wind direction (deg, reference and direction unknown) from sensor #1."
+            "description": "Wind direction (reference and direction unknown) from sensor #1.",
+            "unit": "°"
           },
           {
             "name": "wind_direction_2",
             "type": "number",
-            "description": "Wind speed (deg, reference and direction unknown) from sensor #2."
+            "description": "Wind speed (reference and direction unknown) from sensor #2.",
+            "unit": "°"
           },
           {
             "name": "pressure",
             "type": "number",
-            "description": "Pressure (kPa)."
+            "description": "Pressure.",
+            "unit": "kPa"
           },
           {
             "name": "voltage",
             "type": "number",
-            "description": "Voltage (V)."
+            "description": "Voltage.",
+            "unit": "V"
           }
         ]
       }
