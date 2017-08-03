@@ -1,9 +1,4 @@
-# ---- Install missing dependencies ----
-
-packages <- c("httr", "jsonlite")
-if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-  install.packages(setdiff(packages, rownames(installed.packages())))
-}
+library(magrittr)
 
 # ---- Load functions ----
 
@@ -49,6 +44,80 @@ get_cwms_timeseries_data <- function(ts_codes, summary_interval = c("none", "hou
   return(json)
 }
 
+# ---- Load parsers ----
+
+station_parsers <- list(
+  id = function(location_id) {
+    location_id
+  },
+  name = function(long_name) {
+    long_name
+  },
+  longitude = function(longitude) {
+    longitude %>%
+      units2::as_units("°") %>%
+      dpkg::set_field(description = "Longitude (WGS84, EPSG:4326)")
+  },
+  latitude = function(latitude) {
+    latitude %>%
+      units2::as_units("°") %>%
+      dpkg::set_field(description = "Latitude (WGS84, EPSG:4326)")
+  },
+  elevation = function(elevation, unit_id) {
+    elevation %>%
+      units2::as_units(unique(unit_id)) %>%
+      dpkg::set_field(description = "Elevation (unknown datum)")
+  }
+)
+
+data_parsers <- list(
+  station_id = function(location_id) {
+    location_id
+  },
+  t = function(date_time) {
+    date_time %>%
+      dpkg::set_field(type = "datetime", format = "%Y-%m-%dT%H:%M:%SZ")
+  },
+  air_temperature_1 = function(`Temp-AIR1`) {
+    `Temp-AIR1` %>%
+      units2::as_units("°C")
+  },
+  air_temperature_2 = function(`Temp-AIR2`) {
+    `Temp-AIR2` %>%
+      units2::as_units("°C")
+  },
+  relative_humitidy = function(`%-RELHUM`) {
+    `%-RELHUM` %>%
+      units2::as_units("%")
+  },
+  wind_speed_1 = function(`Speed-WIND1`) {
+    `Speed-WIND1` %>%
+      units2::convert_units("km / hour", "m / sec")
+  },
+  wind_speed_2 = function(`Speed-WIND2`) {
+    `Speed-WIND2` %>%
+      units2::convert_units("km / hour", "m / sec")
+  },
+  wind_direction_1 = function(`Dir-WIND1`) {
+    `Dir-WIND1` %>%
+      units2::convert_units("°", "rad") %>%
+      dpkg::set_field(description = "Wind direction (reference and direction unknown)")
+  },
+  wind_direction_2 = function(`Dir-WIND2`) {
+    `Dir-WIND2` %>%
+      units2::convert_units("°", "rad") %>%
+      dpkg::set_field(description = "Wind direction (reference and direction unknown)")
+  },
+  air_pressure = function(Pres) {
+    Pres %>%
+      units2::convert_units("kPa", "Pa")
+  },
+  voltage = function(Volt) {
+    Volt %>%
+      units2::as_units("V")
+  }
+)
+
 # ---- Get CWMS data ----
 
 location_id <- "COL"
@@ -65,33 +134,55 @@ timeseries_data <- lapply(timeseries$ts_code, get_cwms_timeseries_data, summary_
 names(timeseries_data) <- timeseries$ts_code
 # Tabulate values by timestamp (discarding count and quality_code)
 unique_timestamps <- sort(unique(unlist(sapply(timeseries_data, "[[", "date_time"))))
-merged_timeseries <- data.frame(date_time = unique_timestamps)
+merged_timeseries <- data.frame(date_time = unique_timestamps, stringsAsFactors = FALSE)
 for (i in seq_along(timeseries_data)) {
   merged_timeseries <- merge(merged_timeseries, timeseries_data[[i]][, c("date_time", "value")], by = "date_time", all = TRUE)
   colnames(merged_timeseries)[ncol(merged_timeseries)] <- names(timeseries_data)[i]
 }
-# Rename columns
-ts_labels <- c(
-  "Temp-AIR1" = "air_temperature_1",
-  "Temp-AIR2" = "air_temperature_2",
-  "%-RELHUM" = "relative_humidity",
-  "Speed-WIND1" = "wind_speed_1",
-  "Speed-WIND2" = "wind_speed_2",
-  "Dir-WIND1" = "wind_direction_1",
-  "Dir-WIND2" = "wind_direction_2",
-  "Pres" = "pressure",
-  "Volt" = "voltage"
-)
 ind <- 2:ncol(merged_timeseries)
 ts_codes <- as.numeric(colnames(merged_timeseries)[ind])
 parameter_ids <- timeseries$parameter_id[match(ts_codes, timeseries$ts_code)]
-colnames(merged_timeseries)[ind] <- ts_labels[parameter_ids]
+colnames(merged_timeseries)[ind] <- parameter_ids
 
-# ---- Write data to files ----
+# ---- Build data package ----
 
-# location
-write.csv(location, "data/location.csv", na = "", quote = FALSE, row.names = FALSE)
-# timeseries
-write.csv(timeseries, "data/timeseries.csv", na = "", quote = FALSE, row.names = FALSE)
-# timeseries data
-write.csv(merged_timeseries, "data/data.csv", na = "", quote = FALSE, row.names = FALSE)
+dp <- list(
+  stations = {
+    location %>%
+      cgr::parse_table(station_parsers) %>%
+      dpkg::set_resource(
+        title = "Station metadata",
+        path = "data/stations.csv"
+      )
+  },
+  data = {
+    merged_timeseries %>%
+      cgr::parse_table(data_parsers) %>%
+      dpkg::set_resource(
+        title = "Station data", 
+        path = "data/data.csv", 
+        schema = dpkg::schema(foreignKeys = dpkg::foreignKey("station_id", "stations", "id"))
+      )
+  }
+) %>%
+  dpkg::set_package(
+    name = "usace-cwms-col",
+    title = "USACE CWMS Columbia Glacier Data",
+    description = "Meteorological observations from the US Army Corps of Engineers Corps Water Management System station at Columbia Glacier.",
+    version = "0.1.0",
+    contributors = list(
+      dpkg::contributor("Ethan Welty", email = "ethan.welty@gmail.com", role = "author"),
+      dpkg::contributor("David Finnegan", role = "Coordinated the installation and maintenance of the station"),
+      dpkg::contributor("Adam LeWinter", role = "Assisted station deployment"),
+      dpkg::contributor("Pete Gadomski", role = "Wrote the API distributing the data from the station")
+    ),
+    sources = list(
+      dpkg::source("Glacier Research: Columbia Glacier", path = "http://glacierresearch.org/locations/columbia/"),
+      dpkg::source("Pete Gadomski's CWMS JSON API (cwms-jsonapi)", path = "https://github.com/gadomski/cwms-jsonapi"),
+      dpkg::source("CWMS JSON API Endpoints", path = "https://reservoircontrol.usace.army.mil/NE/pls/cwmsweb/cwms_web.jsonapi")
+    )
+  )
+
+# ---- Write package to file ----
+
+dpkg::write_package(dp)

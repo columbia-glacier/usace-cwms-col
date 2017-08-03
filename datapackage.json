@@ -3,25 +3,6 @@
   "title": "USACE CWMS Columbia Glacier Data",
   "description": "Meteorological observations from the US Army Corps of Engineers Corps Water Management System station at Columbia Glacier.",
   "version": "0.1.0",
-  "contributors": [
-    {
-      "title": "Ethan Welty",
-      "email": "ethan.welty@gmail.com",
-      "role": "author"
-    },
-    {
-      "title": "David Finnegan",
-      "role": "Coordinated the installation and maintenance of the station."
-    },
-    {
-      "title": "Adam LeWinter",
-      "role": "Assisted station deployment."
-    },
-    {
-      "title": "Pete Gadomski",
-      "role": "Wrote the API distributing the data from the station."
-    }
-  ],
   "sources": [
     {
       "title": "Glacier Research: Columbia Glacier",
@@ -36,179 +17,124 @@
       "path": "https://reservoircontrol.usace.army.mil/NE/pls/cwmsweb/cwms_web.jsonapi"
     }
   ],
+  "contributors": [
+    {
+      "title": "Ethan Welty",
+      "email": "ethan.welty@gmail.com",
+      "role": "author"
+    },
+    {
+      "title": "David Finnegan",
+      "role": "Coordinated the installation and maintenance of the station"
+    },
+    {
+      "title": "Adam LeWinter",
+      "role": "Assisted station deployment"
+    },
+    {
+      "title": "Pete Gadomski",
+      "role": "Wrote the API distributing the data from the station"
+    }
+  ],
   "resources": [
     {
-      "name": "location",
-      "title": "Location (Station) Metadata",
-      "path": "data/location.csv",
+      "name": "stations",
+      "path": "data/stations.csv",
+      "title": "Station metadata",
       "schema": {
         "fields": [
           {
-            "name": "active_flag",
-            "type": "boolean",
-            "description": "Whether the station is still active."
+            "name": "id",
+            "type": "string"
           },
           {
-            "name": "db_office_id",
-            "type": "string",
-            "description": "Database office identifier."
-          },
-          {
-            "name": "location_id",
-            "type": "string",
-            "description": "Location identifier."
-          },
-          {
-            "name": "location_type",
-            "type": "string",
-            "description": "Location type."
-          },
-          {
-            "name": "latitude",
-            "type": "number",
-            "description": "Latitude (WGS84, EPSG:4326).",
-            "unit": "°"
+            "name": "name",
+            "type": "string"
           },
           {
             "name": "longitude",
             "type": "number",
-            "description": "Longitude (WGS84, EPSG:4326).",
+            "description": "Longitude (WGS84, EPSG:4326)",
+            "unit": "°"
+          },
+          {
+            "name": "latitude",
+            "type": "number",
+            "description": "Latitude (WGS84, EPSG:4326)",
             "unit": "°"
           },
           {
             "name": "elevation",
             "type": "number",
-            "description": "Elevation of the station (unit: unit_id) (unknown datum)."
-          },
-          {
-            "name": "state_initial",
-            "type": "string",
-            "description": "U.S. state abbreviation."
-          },
-          {
-            "name": "time_zone_name",
-            "type": "string",
-            "description": "Name of the local time zone at the location."
-          },
-          {
-            "name": "unit_system",
-            "type": "string",
-            "description": "System of units ('SI': International System of Units, 'EN': English units).",
-            "constraints": {
-              "enum": ["SI", "EN"]
-            }
-          },
-          {
-            "name": "unit_id",
-            "type": "string",
-            "description": "Unit of elevation."
+            "description": "Elevation (unknown datum)",
+            "unit": "m"
           }
         ]
       }
     },
     {
-      "name": "timeseries",
-      "title": "Timeseries Metadata",
-      "path": "data/timeseries.csv",
-      "schema": {
-        "fields": [
-          {
-            "name": "cwms_ts_id",
-            "type": "string",
-            "description": "CWMS timeseries identifier."
-          },
-          {
-            "name": "db_office_id",
-            "type": "string",
-            "description": "Database office identifier."
-          },
-          {
-            "name": "location_id",
-            "type": "string",
-            "description": "Location identifier."
-          },
-          {
-            "name": "parameter_id",
-            "type": "string",
-            "description": "Timeseries parameter identifier."
-          },
-          {
-            "name": "ts_code",
-            "type": "number",
-            "description": "Timeseries code."
-          },
-          {
-            "name": "unid_id",
-            "type": "number",
-            "description": "Unit of the values in the timeseries."
-          }
-        ]
-      }
-    },
-    {
-      "name": "timeseries-data",
-      "title": "Timeseries Data",
+      "name": "data",
       "path": "data/data.csv",
+      "title": "Station data",
       "schema": {
+        "foreignKeys": {
+          "fields": "station_id",
+          "reference": {
+            "resource": "stations",
+            "fields": "id"
+          }
+        },
         "fields": [
           {
-            "name": "date_time",
+            "name": "t",
             "type": "datetime",
-            "description": "Date and time (UTC).",
             "format": "%Y-%m-%dT%H:%M:%SZ"
           },
           {
             "name": "air_temperature_1",
             "type": "number",
-            "description": "Air temperature from sensor #1.",
             "unit": "°C"
           },
           {
             "name": "air_temperature_2",
             "type": "number",
-            "description": "Air temperature from sensor #2.",
             "unit": "°C"
           },
           {
-            "name": "relative_humidity",
+            "name": "relative_humitidy",
             "type": "number",
-            "description": "Relative humidity.",
             "unit": "%"
           },
           {
             "name": "wind_speed_1",
             "type": "number",
-            "description": "Wind speed from sensor #1.",
-            "unit": "km h-1"
+            "unit": "m s-1"
           },
           {
             "name": "wind_speed_2",
             "type": "number",
-            "description": "Wind speed from sensor #2.",
-            "unit": "km h-1"
+            "unit": "m s-1"
           },
           {
             "name": "wind_direction_1",
             "type": "number",
-            "description": "Wind direction (reference and direction unknown) from sensor #1.",
-            "unit": "°"
+            "description": "Wind direction (reference and direction unknown)",
+            "unit": "rad"
           },
           {
             "name": "wind_direction_2",
             "type": "number",
-            "description": "Wind speed (reference and direction unknown) from sensor #2.",
-            "unit": "°"
+            "description": "Wind direction (reference and direction unknown)",
+            "unit": "rad"
           },
           {
-            "name": "pressure",
+            "name": "air_pressure",
             "type": "number",
-            "description": "Pressure.",
-            "unit": "kPa"
+            "unit": "Pa"
           },
           {
             "name": "voltage",
             "type": "number",
-            "description": "Voltage.",
             "unit": "V"
           }
         ]
