@@ -141,5 +141,4 @@ To Do
 -   Reference and direction of `wind_direction` values.
 -   Datum of location `elevation`.
 -   Physical description of the `Pressure` and `Voltage` timeseries.
--   Convert values to SI (derived) units (kph -&gt; m/s, deg -&gt; rad, kPa -&gt; Pa).
 -   Locate pre-August 2012 data (although the station was installed in May 2009, the API only returns data since August 2012).

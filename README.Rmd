@@ -40,5 +40,4 @@ The data includes meteorological observations from the active US Army Corps of E
 - Reference and direction of `wind_direction` values.
 - Datum of location `elevation`.
 - Physical description of the `Pressure` and `Voltage` timeseries.
-- Convert values to SI (derived) units (kph -> m/s, deg -> rad, kPa -> Pa).
 - Locate pre-August 2012 data (although the station was installed in May 2009, the API only returns data since August 2012).
