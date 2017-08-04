@@ -86,7 +86,7 @@ data_parsers <- list(
     `Temp-AIR2` %>%
       units2::as_units("°C")
   },
-  relative_humitidy = function(`%-RELHUM`) {
+  relative_humidity = function(`%-RELHUM`) {
     `%-RELHUM` %>%
       units2::as_units("%")
   },
@@ -159,8 +159,8 @@ dp <- list(
     merged_timeseries %>%
       cgr::parse_table(data_parsers) %>%
       dpkg::set_resource(
-        title = "Station data", 
-        path = "data/data.csv", 
+        title = "Station data",
+        path = "data/data.csv",
         schema = dpkg::schema(foreignKeys = dpkg::foreignKey("station_id", "stations", "id"))
       )
   }

@@ -101,7 +101,7 @@
             "unit": "°C"
           },
           {
-            "name": "relative_humitidy",
+            "name": "relative_humidity",
             "type": "number",
             "unit": "%"
           },

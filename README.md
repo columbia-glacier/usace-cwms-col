@@ -89,7 +89,7 @@ Data
                     -   **type**: number
                     -   **unit**: °C
                 -   \[4\]
-                    -   **name**: relative\_humitidy
+                    -   **name**: relative\_humidity
                     -   **type**: number
                     -   **unit**: %
                 -   \[5\]
