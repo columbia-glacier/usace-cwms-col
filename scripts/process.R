@@ -71,8 +71,8 @@ station_parsers <- list(
 )
 
 data_parsers <- list(
-  station_id = function(location_id) {
-    location_id
+  station_id = function(station_id) {
+    station_id
   },
   t = function(date_time) {
     date_time %>%
@@ -118,37 +118,39 @@ data_parsers <- list(
   }
 )
 
-# ---- Get CWMS data ----
+# ---- Get data ----
 
-location_id <- "COL"
+station_ids <- c("COL")
 
-# Get location metadata
-locations <- get_cwms_locations(db_office_id = "NAE", unit_system = "SI")
-location <- locations[locations$location_id == location_id, ]
+# Get station metadata
+stations <- get_cwms_locations(db_office_id = "NAE", unit_system = "SI") %>%
+  subset(location_id %in% station_ids)
 
-# Get timeseries metadata
-timeseries <- get_cwms_timeseries(location_id)
+# Get station timeseries
+timeseries <- get_cwms_timeseries(station_ids)
 
-# Get timeseries data (slow)
-timeseries_data <- lapply(timeseries$ts_code, get_cwms_timeseries_data, summary_interval = NULL, floor = NULL)
-names(timeseries_data) <- timeseries$ts_code
-# Tabulate values by timestamp (discarding count and quality_code)
-unique_timestamps <- sort(unique(unlist(sapply(timeseries_data, "[[", "date_time"))))
-merged_timeseries <- data.frame(date_time = unique_timestamps, stringsAsFactors = FALSE)
-for (i in seq_along(timeseries_data)) {
-  merged_timeseries <- merge(merged_timeseries, timeseries_data[[i]][, c("date_time", "value")], by = "date_time", all = TRUE)
-  colnames(merged_timeseries)[ncol(merged_timeseries)] <- names(timeseries_data)[i]
+# Get station data (slow)
+timeseries_data <- timeseries$ts_code %>%
+  lapply(get_cwms_timeseries_data, summary_interval = NULL, floor = NULL) %>%
+  set_names(timeseries$parameter_id)
+timeseries_data %<>%
+  names() %>%
+  lapply(function(name) {
+    timeseries_data[[name]][, c("date_time", "value")] %>%
+      as.data.table() %>%
+      setnames("value", name)
+  })
+data <- timeseries_data[[1]]
+for (i in 2:length(timeseries_data)) {
+  data %<>% merge(timeseries_data[[i]], by = "date_time", all = TRUE)
 }
-ind <- 2:ncol(merged_timeseries)
-ts_codes <- as.numeric(colnames(merged_timeseries)[ind])
-parameter_ids <- timeseries$parameter_id[match(ts_codes, timeseries$ts_code)]
-colnames(merged_timeseries)[ind] <- parameter_ids
+data[, station_id := station_ids]
 
 # ---- Build data package ----
 
 dp <- list(
   stations = {
-    location %>%
+    stations %>%
       cgr::parse_table(station_parsers) %>%
       dpkg::set_resource(
         title = "Station metadata",
@@ -156,12 +158,17 @@ dp <- list(
       )
   },
   data = {
-    merged_timeseries %>%
+    data %>%
       cgr::parse_table(data_parsers) %>%
+      cgr::remove_empty_dimensions(ignore = c("station_id", "t")) %>%
       dpkg::set_resource(
         title = "Station data",
         path = "data/data.csv",
-        schema = dpkg::schema(foreignKeys = dpkg::foreignKey("station_id", "stations", "id"))
+        schema = dpkg::schema(
+          foreignKeys = list(
+            dpkg::foreignKey("station_id", "stations", "id")
+          )
+        )
       )
   }
 ) %>%

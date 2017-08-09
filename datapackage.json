@@ -77,14 +77,20 @@
       "path": "data/data.csv",
       "title": "Station data",
       "schema": {
-        "foreignKeys": {
-          "fields": "station_id",
-          "reference": {
-            "resource": "stations",
-            "fields": "id"
+        "foreignKeys": [
+          {
+            "fields": "station_id",
+            "reference": {
+              "resource": "stations",
+              "fields": "id"
+            }
           }
-        },
+        ],
         "fields": [
+          {
+            "name": "station_id",
+            "type": "string"
+          },
           {
             "name": "t",
             "type": "datetime",
